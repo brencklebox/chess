@@ -9,13 +9,12 @@ STOCKFISH_THINK_TIME = 1
 STOP_GAMES = 25
 
 
-
-def elo_win_probability(rating1, rating2): 
+def elo_win_probability(rating1, rating2):
     """Calculate the probability of player1 beating player2 given current ELO."""
-    return 1.0 * 1.0 / (1 + 1.0 * math.pow(10, 1.0 * (rating1 - rating2) / 400)) 
+    return 1.0 * 1.0 / (1 + 1.0 * math.pow(10, 1.0 * (rating1 - rating2) / 400))
 
 
-def EloRating(Ra, Rb, win): 
+def EloRating(Ra, Rb, win):
     """Update ELO.
 
     parameters:
@@ -27,14 +26,14 @@ def EloRating(Ra, Rb, win):
         Eb -- new ELO of player B
     """
 
-    Pb = elo_win_probability(Ra, Rb) 
-    Pa = elo_win_probability(Rb, Ra) 
-  
-    if (win == 1) : 
-        Ea = Ra + 40 * (1 - Pa) 
-        Eb = Rb + 40 * (0 - Pb) 
-    else : 
-        Ea = Ra + 40 * (0 - Pa) 
+    Pb = elo_win_probability(Ra, Rb)
+    Pa = elo_win_probability(Rb, Ra)
+
+    if win == 1:
+        Ea = Ra + 40 * (1 - Pa)
+        Eb = Rb + 40 * (0 - Pb)
+    else:
+        Ea = Ra + 40 * (0 - Pa)
         Eb = Rb + 40 * (1 - Pb)
     Ea = round(Ea, 0)
     Eb = round(Eb, 0)
@@ -52,7 +51,7 @@ def is_win_benchmark(decision, white):
     """
     wl = None
     white_white_win = decision & white
-    black_black_win = ((decision == False) & (white == False))
+    black_black_win = (decision == False) & (white == False)
     if white_white_win | black_black_win:
         wl = "win"
     else:
@@ -74,17 +73,17 @@ def update_elo_benchmark(results, elo):
     if ~isinstance(results, list):
         results = [results]
     for result in results:
-        benchmark_skill = stockfish_model.STOCKFISH_LEVELS[result['skill']]
-        if result['white']:
-            if result['decision'][0] == True:
+        benchmark_skill = stockfish_model.STOCKFISH_LEVELS[result["skill"]]
+        if result["white"]:
+            if result["decision"][0] == True:
                 ratings = EloRating(elo, benchmark_skill, 1)
-            elif result['decision'][0] == False:
+            elif result["decision"][0] == False:
                 ratings = EloRating(elo, benchmark_skill, 0)
         else:
-            if result['decision'][0] == True:
+            if result["decision"][0] == True:
                 ratings = EloRating(elo, benchmark_skill, 0)
-            elif result['decision'][0] == False:
-                ratings = EloRating(elo, benchmark_skill,1)
+            elif result["decision"][0] == False:
+                ratings = EloRating(elo, benchmark_skill, 1)
         elo = ratings[0]
         print("elo updated to:", elo)
     return elo
@@ -104,14 +103,16 @@ def benchmark_elo(model, elo=1000, games_per_skill=10):
         new_elo (int): updated ELO
     """
     results = []
-    idx = 0 
+    idx = 0
     new_elo = elo
     for skill in range(20):
         try:
             for game in range(games_per_skill):
-                print("playing game", idx+1, "of", games_per_skill*20)
-                white = (game % 2 == 0)
-                benchmark_player = stockfish_model.stockfishPlayer(time=STOCKFISH_THINK_TIME, skill=skill)
+                print("playing game", idx + 1, "of", games_per_skill * 20)
+                white = game % 2 == 0
+                benchmark_player = stockfish_model.stockfishPlayer(
+                    time=STOCKFISH_THINK_TIME, skill=skill
+                )
                 if white:
                     decision = common.play_game(model, benchmark_player, visual=None)
                 else:
@@ -120,13 +121,13 @@ def benchmark_elo(model, elo=1000, games_per_skill=10):
                 result = {"skill": skill, "white": white, "model_win": win, "decision": decision}
                 results.append(result)
                 new_elo = update_elo_benchmark(result, new_elo)
-                idx +=1
+                idx += 1
                 # stop if last 10 were all losses
                 stop = False
                 if len(results) >= STOP_GAMES:
                     stop = True
                     for game in results[-STOP_GAMES:]:
-                        if game['model_win'] == "win":
+                        if game["model_win"] == "win":
                             stop = False
                             break
                 if stop:
@@ -135,8 +136,8 @@ def benchmark_elo(model, elo=1000, games_per_skill=10):
             print("Measurement interrupted!")
             return None
         if stop:
-                print("stopped early due to losses")
-                break
+            print("stopped early due to losses")
+            break
     return results, new_elo
 
 
@@ -149,10 +150,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.m:
-        print('testing minimax')
-        model= minimax_model.minimaxPlayer(depth=args.depth)
+        print("testing minimax")
+        model = minimax_model.minimaxPlayer(depth=args.depth)
     else:
-        print('testing stockfish')
+        print("testing stockfish")
         model = stockfish_model.stockfishPlayer()
 
     _, new_elo = benchmark_elo(model, elo=args.elo, games_per_skill=25)

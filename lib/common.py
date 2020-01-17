@@ -32,8 +32,8 @@ def alphanum_key(s):
     Returns:
         list[str, int]: list of mixed type containing string and numbers, chunked
     """
-    splitlist = [tryint(c) for c in re.split('([0-9]+)', s)]
-    cleanlist = list(filter(lambda a: a != '', splitlist))
+    splitlist = [tryint(c) for c in re.split("([0-9]+)", s)]
+    cleanlist = list(filter(lambda a: a != "", splitlist))
     return cleanlist
 
 
@@ -48,15 +48,15 @@ def sort_nicely(l):
 
 
 def cleanup(path):
-        """Remove folder and its contents.
+    """Remove folder and its contents.
         Removes graph-associated temporary folder and all contents
         from filesystem.
         """
-        shutil.rmtree(path)
+    shutil.rmtree(path)
 
 
 def save_animation(directory, anim_file_name, fps=2):
-        """Save output of run with graph into an animation.
+    """Save output of run with graph into an animation.
         Saves an animation from using ffmpeg, based on graph output.
         Requres folder of ``.png`` such as those generated from
         ``ProcessGraph.run()`` in order to create the animation. Cleans
@@ -65,25 +65,34 @@ def save_animation(directory, anim_file_name, fps=2):
             anim_file_name (str): name of the file to save
             fps (int, optional): frames-er second of the resulting animation
         """
-        os.chdir(directory)
-        filedir = os.getcwd()
-        files = os.listdir(filedir)
-        filelist = sort_nicely(files)
-        for i, filename in enumerate(filelist):
-            _, extension = os.path.splitext(filename)
-            new_filename = str(i) + extension
-            os.rename(os.path.join(directory, filename), os.path.join(directory, new_filename))
-        with open(os.devnull, 'w') as fnull:
-            subprocess.call([
-                'ffmpeg', '-y',
-                          '-framerate', str(fps),
-                          '-i', '%d.png',
-                          '-pix_fmt', 'yuv420p',
-                          '-vf', "scale=trunc(iw/2)*2:trunc(ih/2)*2",
-                '../' + anim_file_name + '.mp4'
-            ], stdout=fnull, stderr=subprocess.STDOUT)
-        os.chdir("../")
-        cleanup(directory)
+    os.chdir(directory)
+    filedir = os.getcwd()
+    files = os.listdir(filedir)
+    filelist = sort_nicely(files)
+    for i, filename in enumerate(filelist):
+        _, extension = os.path.splitext(filename)
+        new_filename = str(i) + extension
+        os.rename(os.path.join(directory, filename), os.path.join(directory, new_filename))
+    with open(os.devnull, "w") as fnull:
+        subprocess.call(
+            [
+                "ffmpeg",
+                "-y",
+                "-framerate",
+                str(fps),
+                "-i",
+                "%d.png",
+                "-pix_fmt",
+                "yuv420p",
+                "-vf",
+                "scale=trunc(iw/2)*2:trunc(ih/2)*2",
+                "../" + anim_file_name + ".mp4",
+            ],
+            stdout=fnull,
+            stderr=subprocess.STDOUT,
+        )
+    os.chdir("../")
+    cleanup(directory)
 
 
 def who(player):
@@ -104,11 +113,11 @@ def play_game(player1, player2, visual="svg", pause=0.1):
         msg (str) -- game result message
         board (chess.Board) -- chess board object
     """
-    use_svg = (visual == "svg")
-    print_result = (visual == "simple")
+    use_svg = visual == "svg"
+    print_result = visual == "simple"
     board = chess.Board()
     if use_svg:
-        save_path = os.path.join(os.getcwd(), datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
+        save_path = os.path.join(os.getcwd(), datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
         os.makedirs(save_path)
 
     # play the game
@@ -123,8 +132,10 @@ def play_game(player1, player2, visual="svg", pause=0.1):
             board.push_uci(uci)
             if visual is not None:
                 if use_svg:
-                    filepath = os.path.join(save_path, str(move_counter)+'.png')
-                    cairosvg.surface.PNGSurface.convert(bytestring=str(board._repr_svg_()),write_to=filepath)
+                    filepath = os.path.join(save_path, str(move_counter) + ".png")
+                    cairosvg.surface.PNGSurface.convert(
+                        bytestring=str(board._repr_svg_()), write_to=filepath
+                    )
                 if print_result:
                     print("Move", move_counter, "--", name, "plays", uci)
             time.sleep(pause)
@@ -152,4 +163,4 @@ def play_game(player1, player2, visual="svg", pause=0.1):
     player1.quit()
     player2.quit()
     return (result, msg, board)
-    
+
