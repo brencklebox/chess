@@ -1,5 +1,6 @@
 import chess
 import chess.engine
+import os
 
 
 STOCKFISH_LEVELS = {0: 1231,
@@ -24,10 +25,21 @@ STOCKFISH_LEVELS = {0: 1231,
                     19: 2905,
                     20: 3450}
 
-STOCKFISH_PATH = "/Users/brenckle mark/Downloads/stockfish-10-mac/Mac/stockfish-10-64"
 
-def stockfish_player(board, path=STOCKFISH_PATH, time=0.1, skill=1):
-    engine = chess.engine.SimpleEngine.popen_uci(path)
-    result = engine.play(board, chess.engine.Limit(time=time), options={"Skill Level": skill})
-    engine.quit()
-    return result.move.uci()
+class stockfishPlayer:
+    """Wrapper for stockfish player."""
+
+    def __init__(self, time=0.1, skill=1):
+        self.levels = STOCKFISH_LEVELS
+        self.path = os.environ.get("STOCKFISH_PATH")
+        self.time = time
+        self.skill = skill
+        self.engine = chess.engine.SimpleEngine.popen_uci(self.path)
+
+    def play(self, board):
+        result = self.engine.play(board, chess.engine.Limit(time=self.time), options={"Skill Level": self.skill})
+        return result.move.uci()
+    
+    def quit(self):
+        self.engine.quit()
+        return True

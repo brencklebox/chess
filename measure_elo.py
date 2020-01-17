@@ -90,7 +90,7 @@ def update_elo_benchmark(results, elo):
     return elo
 
 
-def benchmark_elo(model, modelargs={}, elo=1000, games_per_skill=10):
+def benchmark_elo(model, elo=1000, games_per_skill=10):
     """Subroutine for running ELO benchmark tests on model.
     
     Parameters:
@@ -111,19 +111,11 @@ def benchmark_elo(model, modelargs={}, elo=1000, games_per_skill=10):
             for game in range(games_per_skill):
                 print("playing game", idx+1, "of", games_per_skill*20)
                 white = (game % 2 == 0)
+                benchmark_player = stockfish_model.stockfishPlayer(time=STOCKFISH_THINK_TIME, skill=skill)
                 if white:
-                    decision = common.play_game(model, 
-                                                stockfish_model.stockfish_player, 
-                                                modelargs, {"path": stockfish_model.STOCKFISH_PATH,
-                                                            "time": STOCKFISH_THINK_TIME,
-                                                            "skill": skill}, visual=None)
+                    decision = common.play_game(model, benchmark_player, visual=None)
                 else:
-                    decision = common.play_game(stockfish_model.stockfish_player,
-                                                model, 
-                                                {"path": stockfish_model.STOCKFISH_PATH,
-                                                "time": STOCKFISH_THINK_TIME,
-                                                "skill": skill},
-                                                modelargs, visual=None)
+                    decision = common.play_game(benchmark_player, model, visual=None)
                 win = is_win_benchmark(decision[0], white)
                 result = {"skill": skill, "white": white, "model_win": win, "decision": decision}
                 results.append(result)
@@ -154,13 +146,15 @@ if __name__ == "__main__":
     parser.add_argument("-m", default=False, help="test the minimax model")
     parser.add_argument("-md", "--depth", type=int, default=3, help="depth of minimax")
     parser.add_argument("-a", "--alpha", default=True, help="use alpha beta pruning")
+    parser.add_argument("-e", "--elo", default=1000, help="initial ELO guess to use for model")
     args = parser.parse_args()
 
-    if args.args.m:
-        model= minimax_model.minimax_player
-        model_options = {"depth": args.md, "color": chess.WHITE}
+    if args.m:
+        print('testing minimax')
+        model= minimax_model.minimaxPlayer(depth=args.md)
     else:
-        model = stockfish_model.stockfish_player
-        model_options = {}
-    _, new_elo = benchmark_elo(model, model_options, games_per_skill=10)
+        print('testing stockfish')
+        model = stockfish_model.stockfishPlayer()
+
+    _, new_elo = benchmark_elo(model, elo=args.elo, games_per_skill=10)
     print("Estimated minimax ELO:", new_elo)

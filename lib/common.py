@@ -90,14 +90,12 @@ def who(player):
     return "White" if player == chess.WHITE else "Black"
 
 
-def play_game(player1, player2, p1args={}, p2args={}, visual="svg", pause=0.1):
+def play_game(player1, player2, visual="svg", pause=0.1):
     """Generic game playing method. Player1 is white.
 
     parameters:
-        player1 (function) -- function that takes board and kwargs, returns uci move
-        player2 (function) -- function that takes board and kwargs, returns uci move
-        p1args (dict) -- kwargs for player 1
-        p2args (dict) -- kwargs for player 2
+        player1 (obj) -- model object that takes board and options, has 'play' method
+        player2 (obj) -- model object that takes board and options, has 'play' method
         visual (str) --  "simple" | "svg" | None
         pause (float) -- pause between moves
     
@@ -118,9 +116,9 @@ def play_game(player1, player2, p1args={}, p2args={}, visual="svg", pause=0.1):
         move_counter = 1
         while not board.is_game_over(claim_draw=True):
             if board.turn == chess.WHITE:
-                uci = player1(board, **p1args)
+                uci = player1.play(board)
             else:
-                uci = player2(board, **p2args)
+                uci = player2.play(board)
             name = who(board.turn)
             board.push_uci(uci)
             if visual is not None:
@@ -151,4 +149,6 @@ def play_game(player1, player2, p1args={}, p2args={}, visual="svg", pause=0.1):
         print(msg)
     if use_svg:
         save_animation(save_path, "animation", fps=2)
+    player1.quit()
+    player2.quit()
     return (result, msg, board)
