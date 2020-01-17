@@ -152,3 +152,4 @@ def play_game(player1, player2, visual="svg", pause=0.1):
     player1.quit()
     player2.quit()
     return (result, msg, board)
+    
