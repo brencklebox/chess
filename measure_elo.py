@@ -143,18 +143,17 @@ def benchmark_elo(model, elo=1000, games_per_skill=10):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", default=False, help="test the minimax model")
+    parser.add_argument("-m", default=False, action="store_true", help="test the minimax model")
     parser.add_argument("-md", "--depth", type=int, default=3, help="depth of minimax")
-    parser.add_argument("-a", "--alpha", default=True, help="use alpha beta pruning")
     parser.add_argument("-e", "--elo", default=1000, help="initial ELO guess to use for model")
     args = parser.parse_args()
 
     if args.m:
         print('testing minimax')
-        model= minimax_model.minimaxPlayer(depth=args.md)
+        model= minimax_model.minimaxPlayer(depth=args.depth)
     else:
         print('testing stockfish')
         model = stockfish_model.stockfishPlayer()
 
-    _, new_elo = benchmark_elo(model, elo=args.elo, games_per_skill=10)
+    _, new_elo = benchmark_elo(model, elo=args.elo, games_per_skill=25)
     print("Estimated minimax ELO:", new_elo)
