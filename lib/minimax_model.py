@@ -2,6 +2,7 @@
 
 import chess
 import numpy as np
+import random
 
 
 class minimaxPlayer:
@@ -486,10 +487,11 @@ class minimaxPlayer:
         """
         Returns the best minimax _move_ for a given board and player
         """
-        bestMove = ""
+        all_moves = board.legal_moves
+        bestMove = random.choice(list(all_moves))
         bestMoveScore = -9000
 
-        for move in board.legal_moves:
+        for move in all_moves:
             board.push_uci(move.uci())
             value = self._minimax(self.depth - 1, board, -10000, 10000)
             board.pop()
