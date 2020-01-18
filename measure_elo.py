@@ -105,6 +105,8 @@ def benchmark_elo(model, elo=1000, games_per_skill=10):
     results = []
     idx = 0
     new_elo = elo
+    if ~isinstance(new_elo, int):
+        new_elo = int(new_elo)
     for skill in range(20):
         try:
             for game in range(games_per_skill):
